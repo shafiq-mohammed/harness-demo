@@ -25,6 +25,9 @@ class LinkRepository(Protocol):
     def increment_hits(self, code: str) -> None:
         """Atomically add 1 to hit_count. Raises LinkNotFoundError if unknown."""
 
+    def list(self, *, limit: int, after_code: str | None = None) -> list[Link]:
+        """Up to `limit` links with code > after_code (or from the start), by code ascending."""
+
 
 class InMemoryLinkRepository:
     """Dict-backed implementation of LinkRepository.
@@ -51,3 +54,15 @@ class InMemoryLinkRepository:
         if link is None:
             raise LinkNotFoundError(code)
         link.hit_count += 1
+
+    def list(self, *, limit: int, after_code: str | None = None) -> list[Link]:
+        """Return up to `limit` links after `after_code`, ordered by code ascending.
+
+        Keyset paging: codes are compared as plain strings, so an unknown cursor simply starts
+        after wherever that value would sort. Defined last in the class so that the `list[Link]`
+        annotations above still resolve to the builtin.
+        """
+        codes = sorted(self._links)
+        if after_code is not None:
+            codes = [code for code in codes if code > after_code]
+        return [self._links[code] for code in codes[:limit]]
