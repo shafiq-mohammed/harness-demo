@@ -4,7 +4,7 @@ import secrets
 import string
 
 CODE_ALPHABET = string.ascii_letters + string.digits
-CODE_LENGTH = 7
+CODE_LENGTH = 8
 
 
 def generate_code(length: int = CODE_LENGTH) -> str:
