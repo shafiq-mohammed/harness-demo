@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 from app.auth import require_api_key
 from app.codes import generate_code
+from app.errors import ApiError
 from app.models import Link
 from app.repository import CodeAlreadyExistsError
 from app.schemas import CreateLinkRequest, LinkOut
@@ -15,6 +16,19 @@ from app.schemas import CreateLinkRequest, LinkOut
 router = APIRouter()
 
 MAX_CODE_ATTEMPTS = 5
+
+NOT_FOUND_MESSAGE = "No link exists for that code."
+
+
+def _to_link_out(link: Link) -> LinkOut:
+    """Render a stored link as the public representation."""
+    return LinkOut(
+        code=link.code,
+        url=link.url,
+        created_at=link.created_at,
+        expires_at=link.expires_at,
+        hit_count=link.hit_count,
+    )
 
 
 async def _parse_create_request(request: Request) -> CreateLinkRequest:
@@ -63,3 +77,12 @@ async def create_link(request: Request, _: str = Depends(require_api_key)) -> Li
         )
 
     raise RuntimeError("could not generate an unused short code")
+
+
+@router.get("/links/{code}", response_model=LinkOut)
+async def get_link(code: str, request: Request, _: str = Depends(require_api_key)) -> LinkOut:
+    """Return the stored link, including its live hit count."""
+    link = request.app.state.repo.get(code)
+    if link is None:
+        raise ApiError(404, "not_found", NOT_FOUND_MESSAGE)
+    return _to_link_out(link)

@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from app.clock import Clock, SystemClock
 from app.errors import register_error_handlers
 from app.repository import InMemoryLinkRepository, LinkRepository
-from app.routes import health, links
+from app.routes import health, links, redirect
 from app.settings import Settings
 
 
@@ -28,6 +28,8 @@ def create_app(
     register_error_handlers(app)
     app.include_router(health.router)
     app.include_router(links.router)
+    # The catch-all /{code} router is included last so /healthz and /links match first.
+    app.include_router(redirect.router)
 
     return app
 

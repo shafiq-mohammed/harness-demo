@@ -22,6 +22,9 @@ class LinkRepository(Protocol):
     def get(self, code: str) -> Link | None:
         """Return the link with that code, or None."""
 
+    def increment_hits(self, code: str) -> None:
+        """Atomically add 1 to hit_count. Raises LinkNotFoundError if unknown."""
+
 
 class InMemoryLinkRepository:
     """Dict-backed implementation of LinkRepository.
@@ -41,3 +44,10 @@ class InMemoryLinkRepository:
     def get(self, code: str) -> Link | None:
         """Return the link with that code, or None."""
         return self._links.get(code)
+
+    def increment_hits(self, code: str) -> None:
+        """Add 1 to the stored link's hit_count. Raises LinkNotFoundError if unknown."""
+        link = self._links.get(code)
+        if link is None:
+            raise LinkNotFoundError(code)
+        link.hit_count += 1
