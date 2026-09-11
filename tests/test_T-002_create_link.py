@@ -15,7 +15,7 @@ from app.clock import FixedClock
 from app.main import create_app
 from app.settings import Settings
 
-CODE_PATTERN = re.compile(r"^[A-Za-z0-9]{7}$")
+CODE_PATTERN = re.compile(r"^[A-Za-z0-9]{8}$")
 
 VALID_URL = "https://example.com/a/b?c=1"
 
@@ -27,7 +27,7 @@ def _long_url(total_length: int) -> str:
 
 
 # --------------------------------------------------------------------------------------
-# AC1: valid key + valid body -> 201 LinkOut with a 7 char code and created_at == T0
+# AC1: valid key + valid body -> 201 LinkOut with an 8 char code and created_at == T0
 # --------------------------------------------------------------------------------------
 
 

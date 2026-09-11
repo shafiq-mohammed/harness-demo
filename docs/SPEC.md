@@ -28,8 +28,8 @@ A1. Authentication is a static API key passed in the `X-API-Key` header. Valid k
 A2. Creating a link and reading/listing link metadata require the API key. Following a redirect
     (`GET /{code}`) does NOT require a key, because links are pasted into docs and Slack and opened in
     browsers.
-A3. Short codes are 7 characters from `[A-Za-z0-9]`, generated with `secrets`. Collisions are retried up
-    to 5 times; the space is 62^7 so exhaustion is treated as unreachable.
+A3. Short codes are 8 characters from `[A-Za-z0-9]`, generated with `secrets`. Collisions are retried up
+    to 5 times; the space is 62^8 (about 2.2e14) so exhaustion is treated as unreachable. Changed from 7 to 8 at human review of PR #2.
 A4. A "valid http(s) URL" is a string of at most 2048 characters whose scheme is `http` or `https` and
     which has a non-empty host. The URL is stored and redirected to verbatim (no normalisation, no
     trailing-slash rewriting).
@@ -224,7 +224,7 @@ LinkOut), routes/links.py (POST only), main.py (+repo parameter).
 ```python
 # src/app/codes.py
 CODE_ALPHABET = string.ascii_letters + string.digits   # 62 chars
-CODE_LENGTH = 7
+CODE_LENGTH = 8
 def generate_code(length: int = CODE_LENGTH) -> str: ...   # secrets.choice per char
 ```
 
