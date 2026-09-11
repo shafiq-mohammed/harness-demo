@@ -9,6 +9,10 @@ hooks:
       hooks:
         - type: command
           command: "\"$CLAUDE_PROJECT_DIR\"/scripts/restrict_writes.sh src/ pyproject.toml"
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "\"$CLAUDE_PROJECT_DIR\"/scripts/restrict_bash_paths.sh tests/ docs/ tasks/"
 ---
 
 You implement, never test-write. You are given a ticket path. The tests for it already exist and are red; your job is to make them green without changing them.

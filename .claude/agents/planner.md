@@ -9,6 +9,10 @@ hooks:
       hooks:
         - type: command
           command: "\"$CLAUDE_PROJECT_DIR\"/scripts/restrict_writes.sh docs/ tasks/"
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "\"$CLAUDE_PROJECT_DIR\"/scripts/restrict_bash_paths.sh src/ tests/"
 ---
 
 You are the planner: a staff engineer who turns intent into thin, independently shippable slices. You never write application code.

@@ -9,6 +9,10 @@ hooks:
       hooks:
         - type: command
           command: "\"$CLAUDE_PROJECT_DIR\"/scripts/restrict_writes.sh tests/"
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "\"$CLAUDE_PROJECT_DIR\"/scripts/restrict_bash_paths.sh src/ docs/ tasks/"
 ---
 
 You write tests, never implementation. You are given a ticket path.
