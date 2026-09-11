@@ -1,5 +1,7 @@
 """Storage interface for links and the in-memory implementation."""
 
+from __future__ import annotations
+
 from typing import Protocol
 
 from app.models import Link
@@ -24,6 +26,9 @@ class LinkRepository(Protocol):
 
     def increment_hits(self, code: str) -> None:
         """Atomically add 1 to hit_count. Raises LinkNotFoundError if unknown."""
+
+    def list(self, *, limit: int, after_code: str | None = None) -> list[Link]:
+        """Up to `limit` links with code > after_code (or from the start), by code ascending."""
 
 
 class InMemoryLinkRepository:
@@ -51,3 +56,16 @@ class InMemoryLinkRepository:
         if link is None:
             raise LinkNotFoundError(code)
         link.hit_count += 1
+
+    def list(self, *, limit: int, after_code: str | None = None) -> list[Link]:
+        """Return up to `limit` links after `after_code`, ordered by code ascending.
+
+        Keyset paging: codes are compared as plain strings, so an unknown cursor simply starts
+        after wherever that value would sort. The module uses postponed annotations
+        (`from __future__ import annotations`), so this method's name does not shadow the
+        builtin `list` inside annotations.
+        """
+        codes = sorted(self._links)
+        if after_code is not None:
+            codes = [code for code in codes if code > after_code]
+        return [self._links[code] for code in codes[:limit]]

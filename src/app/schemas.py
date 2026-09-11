@@ -42,3 +42,10 @@ class LinkOut(BaseModel):
     created_at: datetime
     expires_at: datetime | None
     hit_count: int
+
+
+class LinkPage(BaseModel):
+    """One page of links plus the cursor for the next page, or None when the listing ends."""
+
+    items: list[LinkOut]
+    next_cursor: str | None

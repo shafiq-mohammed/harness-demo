@@ -2,7 +2,7 @@
 
 import json
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
@@ -11,11 +11,15 @@ from app.codes import generate_code
 from app.errors import ApiError
 from app.models import Link
 from app.repository import CodeAlreadyExistsError
-from app.schemas import CreateLinkRequest, LinkOut
+from app.schemas import CreateLinkRequest, LinkOut, LinkPage
 
 router = APIRouter()
 
 MAX_CODE_ATTEMPTS = 5
+
+DEFAULT_PAGE_LIMIT = 20
+MIN_PAGE_LIMIT = 1
+MAX_PAGE_LIMIT = 100
 
 NOT_FOUND_MESSAGE = "No link exists for that code."
 
@@ -77,6 +81,29 @@ async def create_link(request: Request, _: str = Depends(require_api_key)) -> Li
         )
 
     raise RuntimeError("could not generate an unused short code")
+
+
+@router.get("/links", response_model=LinkPage)
+async def list_links(
+    request: Request,
+    limit: int = Query(DEFAULT_PAGE_LIMIT, ge=MIN_PAGE_LIMIT, le=MAX_PAGE_LIMIT),
+    cursor: str | None = Query(None),
+    _: str = Depends(require_api_key),
+) -> LinkPage:
+    """Return one keyset page of links ordered by code ascending.
+
+    One extra link is fetched to learn whether anything remains after this page; if so the page
+    is truncated and the last code becomes the cursor for the next request. An unknown cursor is
+    not an error, it simply starts after that value.
+    """
+    links = request.app.state.repo.list(limit=limit + 1, after_code=cursor)
+
+    next_cursor: str | None = None
+    if len(links) > limit:
+        links = links[:limit]
+        next_cursor = links[-1].code
+
+    return LinkPage(items=[_to_link_out(link) for link in links], next_cursor=next_cursor)
 
 
 @router.get("/links/{code}", response_model=LinkOut)
