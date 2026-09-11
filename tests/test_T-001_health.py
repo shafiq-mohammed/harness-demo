@@ -6,11 +6,12 @@ Acceptance criteria live in tasks/T-001.md. Interface in docs/SPEC.md sections 7
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from conftest import T0
+from fastapi.testclient import TestClient
+
 from app.clock import FixedClock
 from app.main import create_app
 from app.settings import Settings
-from conftest import T0
-from fastapi.testclient import TestClient
 
 # --------------------------------------------------------------------------------------
 # AC1: GET /healthz -> 200 {"status": "ok"}
