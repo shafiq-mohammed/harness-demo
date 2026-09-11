@@ -11,7 +11,7 @@ from app.codes import generate_code
 from app.errors import ApiError
 from app.models import Link
 from app.repository import CodeAlreadyExistsError
-from app.schemas import CreateLinkRequest, LinkOut
+from app.schemas import PAST_EXPIRY_MESSAGE, CreateLinkRequest, LinkOut
 
 router = APIRouter()
 
@@ -62,8 +62,24 @@ async def create_link(request: Request, _: str = Depends(require_api_key)) -> Li
     repo = request.app.state.repo
     created_at = request.app.state.clock.now()
 
+    if payload.expires_at is not None and payload.expires_at <= created_at:
+        raise RequestValidationError(
+            [
+                {
+                    "type": "value_error",
+                    "loc": ("body", "expires_at"),
+                    "msg": PAST_EXPIRY_MESSAGE,
+                }
+            ]
+        )
+
     for _attempt in range(MAX_CODE_ATTEMPTS):
-        link = Link(code=generate_code(), url=payload.url, created_at=created_at)
+        link = Link(
+            code=generate_code(),
+            url=payload.url,
+            created_at=created_at,
+            expires_at=payload.expires_at,
+        )
         try:
             repo.add(link)
         except CodeAlreadyExistsError:
